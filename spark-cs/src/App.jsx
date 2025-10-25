@@ -6,9 +6,11 @@ function App() {
   return (
     <>
       <NavBar />
-      <div style={{ padding: 24 }}>
-        <Outlet />
-      </div>
+      <main>
+        <div className="container" style={{ paddingTop: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
+          <Outlet />
+        </div>
+      </main>
     </>
   )
 }

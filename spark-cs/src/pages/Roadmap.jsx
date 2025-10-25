@@ -9,9 +9,9 @@ export default function Roadmap() {
   return (
     <div>
       <h1>Roadmap</h1>
-      <div style={{ display: 'grid', gap: 16 }}>
+      <div style={{ display: 'grid', gap: 'var(--space-4)' }}>
         {steps.map((s, idx) => (
-          <div key={idx} style={{ border: '1px solid #444', borderRadius: 8, padding: 16 }}>
+          <div key={idx} className="card">
             <h2 style={{ marginTop: 0 }}>{s.title}</h2>
             <ol>
               {s.items.map((it, i) => (

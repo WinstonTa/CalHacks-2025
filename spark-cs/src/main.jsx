@@ -8,6 +8,7 @@ import Profile from './pages/Profile.jsx'
 import Guidance from './pages/Guidance.jsx'
 import Roadmap from './pages/Roadmap.jsx'
 import Library from './pages/Library.jsx'
+import { initTheme } from './theme.js'
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,9 @@ const router = createBrowserRouter([
     ],
   },
 ])
+
+// Initialize theme ASAP
+initTheme()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
