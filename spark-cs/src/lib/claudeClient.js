@@ -1,7 +1,6 @@
 import { buildRoadmapPrompt } from './roadmapPrompt.js'
 
 const API_BASE = import.meta.env?.VITE_API_BASE || ''
-//const ANTHROPIC_API_KEY = import.meta.env?.ANTHROPIC_API_KEY || 'http://localhost:8787'
 
 export async function generateRoadmap({ branch, domain, signal }) {
   const system = 'You are Claude, a precise and practical technical mentor.'
