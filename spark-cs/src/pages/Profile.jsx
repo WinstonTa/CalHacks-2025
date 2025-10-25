@@ -7,6 +7,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth'
+ 
 
 export default function Profile() {
   const [email, setEmail] = useState('')
@@ -44,6 +45,8 @@ export default function Profile() {
     return () => unsub()
   }, [])
 
+  
+
   async function handleAuth(e) {
     e.preventDefault()
     setError('')
@@ -63,6 +66,7 @@ export default function Profile() {
       setError(err.message || 'Authentication error')
     }
   }
+  
 
   function handleSaveProfile(e) {
     e.preventDefault()

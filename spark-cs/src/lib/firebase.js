@@ -8,6 +8,7 @@ const firebaseConfig = {
   storageBucket: 'calhacks25-mwj.appspot.com',
   messagingSenderId: '56091146871',
   appId: '1:56091146871:web:710b40233d41e29cb36472',
+  measurementId: 'G-2GMXBKWSD3',
 }
 
 export const app = initializeApp(firebaseConfig)
