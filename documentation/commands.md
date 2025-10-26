@@ -21,10 +21,9 @@ npm run dev (again)
 
 # Deploy Entire Project
 ## Back End
-cd spark-cs
-cd server
+cd backend
 node index.js
 
 ## Front End
-cd spark-cs
+cd frontend
 npm run dev
