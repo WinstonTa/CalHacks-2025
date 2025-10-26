@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import claudeRouter from './routes/claude.js'
+import claudeRouter from './src/routes/claude.js'
 
 const app = express()
 

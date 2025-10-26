@@ -1,11 +1,14 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { Anthropic } from 'anthropic'
+//import { Anthropic } from 'anthropic'
+import Anthropic from '@anthropic-ai/sdk'
+
 
 const router = Router()
 
 const bodySchema = z.object({
-  model: z.string().optional().default('claude-3-5-sonnet-latest'),
+  //model: z.string().optional().default('claude-3-5-sonnet-latest'),
+  model: z.string().optional().default('claude-sonnet-4-5-20250929') ,
   messages: z
     .array(
       z.object({
