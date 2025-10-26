@@ -145,13 +145,29 @@ export default function Roadmap() {
           lines.push(`    ${did}(${d})`)
           const subs = mapByDomain.get(norm(d)) || []
           for (const s of subs) {
-            const sid = `s_${d.replace(/[^a-z0-9]/gi, '_')}_${String(s).replace(/[^a-z0-9]/gi, '_')}`
-            lines.push(`      ${sid}(${s})`)
-            nodeIndexRef.current[sid] = { branch, domain: d, subdomain: String(s) }
+            const sName = typeof s === 'string' ? s : (s?.name ?? '')
+            const sid = `s_${d.replace(/[^a-z0-9]/gi, '_')}_${String(sName).replace(/[^a-z0-9]/gi, '_')}`
+            lines.push(`      ${sid}(${sName})`)
+            nodeIndexRef.current[sid] = { branch, domain: d, subdomain: String(sName) }
+            const children = typeof s === 'object' && Array.isArray(s.children) ? s.children : []
+            for (const c of children) {
+              const cid = `c_${d.replace(/[^a-z0-9]/gi, '_')}_${String(sName).replace(/[^a-z0-9]/gi, '_')}_${String(c).replace(/[^a-z0-9]/gi, '_')}`
+              lines.push(`        ${cid}(${c})`)
+              nodeIndexRef.current[cid] = { branch, domain: d, subdomain: String(c) }
+            }
           }
         }
         const def = lines.join('\n')
-        mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' })
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: 'dark',
+          securityLevel: 'loose',
+          themeVariables: {
+            textColor: '#ffffff',
+            primaryTextColor: '#ffffff',
+            lineColor: '#8aa1ff',
+          },
+        })
         const id = `mm_${Date.now()}`
         const { svg } = await mermaid.render(id, def)
         setGraphSvg(svg)
@@ -172,11 +188,25 @@ export default function Roadmap() {
     host.innerHTML = graphSvg
     const svgEl = host.querySelector('svg')
     if (svgEl) {
+      // Expand SVG to fill host fully
+      svgEl.setAttribute('width', '100%')
+      svgEl.setAttribute('height', '100%')
+      svgEl.style.width = '100%'
+      svgEl.style.height = '100%'
       if (panzoomRef.current) {
         panzoomRef.current.destroy()
         panzoomRef.current = null
       }
-      panzoomRef.current = svgPanZoom(svgEl, { controlIconsEnabled: false, zoomEnabled: true, panEnabled: true })
+      panzoomRef.current = svgPanZoom(svgEl, {
+        controlIconsEnabled: false,
+        zoomEnabled: true,
+        panEnabled: true,
+        minZoom: 0.3,
+        maxZoom: 8,
+        fit: true,
+        center: true,
+        contain: 'outside',
+      })
       for (const id of Object.keys(nodeIndexRef.current)) {
         const el = svgEl.querySelector(`#${CSS.escape(id)}`)
         if (el) {
@@ -184,6 +214,9 @@ export default function Roadmap() {
           el.addEventListener('click', () => handleNodeClick(id))
         }
       }
+      // Force white text for visibility unless styles override
+      const textNodes = svgEl.querySelectorAll('text')
+      textNodes.forEach((t) => { t.setAttribute('fill', '#ffffff') })
     }
   }, [graphSvg])
 
@@ -250,8 +283,8 @@ export default function Roadmap() {
       {aiError && <div role="alert" style={{ color: 'crimson', marginTop: 8 }}>{aiError}</div>}
       {aiLoading && <div role="status" style={{ marginTop: 8 }}>Working…</div>}
 
-      <div className="card" style={{ marginTop: 16, minHeight: 360 }}>
-        <div ref={svgHostRef} style={{ width: '100%', overflow: 'hidden' }} />
+      <div className="card" style={{ marginTop: 16, height: '170vh', overflow: 'auto' }}>
+        <div ref={svgHostRef} style={{ width: '100%', height: '100%' }} />
       </div>
 
       {summary && (

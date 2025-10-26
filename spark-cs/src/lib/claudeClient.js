@@ -32,8 +32,17 @@ export async function generateMindmapData({ branch, domains, signal, model = 'cl
   const system = 'You are Claude, a precise and practical technical mentor. Respond with strict JSON only.'
   const prompt = `We are building a mindmap for the branch: ${branch}.
 Given these domains under that branch: ${domains.join(', ')}.
-For each domain, produce 3-6 concise subdomains or skills (1-3 words each). Do not include explanations.
-Return JSON of the form: { "items": [ { "domain": "...", "subdomains": ["...","..."] }, ... ] } with no extra text.`
+For EACH domain, produce 3-6 concise subdomains (1-3 words each). For EACH subdomain, also produce 3-6 concise child topics (1-3 words each).
+Return STRICT JSON only in this shape:
+{
+  "items": [
+    { "domain": "<domain>", "subdomains": [
+        { "name": "<subdomain>", "children": ["<child>", "<child>"] },
+        { "name": "<subdomain>", "children": ["<child>", "<child>"] }
+    ] }
+  ]
+}
+No prose or extra text.`
 
   const res = await fetch(`${API_BASE}/api/claude/chat`, {
     method: 'POST',
@@ -54,7 +63,15 @@ Return JSON of the form: { "items": [ { "domain": "...", "subdomains": ["...",".
   const content = data?.content || '{}'
   try {
     const parsed = JSON.parse(content)
-    return parsed?.items || []
+    // Normalize variations: allow subdomains to be either strings or {name, children}
+    const items = Array.isArray(parsed?.items) ? parsed.items : []
+    return items.map((it) => ({
+      domain: it?.domain,
+      subdomains: (Array.isArray(it?.subdomains) ? it.subdomains : []).map((s) => {
+        if (typeof s === 'string') return { name: s, children: [] }
+        return { name: s?.name ?? '', children: Array.isArray(s?.children) ? s.children : [] }
+      }),
+    }))
   } catch {
     return []
   }

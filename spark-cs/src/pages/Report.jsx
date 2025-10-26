@@ -123,38 +123,28 @@ export default function Report() {
     localStorage.setItem('sparkcs_questionnaire', JSON.stringify({ branch, domain }))
   }, [branch, domain])
 
-  useEffect(() => {
-    if (!branch || !domain) {
-      setAiOutput('')
-      setAiError('')
-      setAiLoading(false)
-      setJustFinished(false)
-      return
-    }
+  async function handleGenerate() {
+    if (!branch || !domain) return
     const controller = new AbortController()
-    const run = async () => {
-      try {
-        setAiLoading(true)
-        setAiError('')
-        setAiOutput('')
-        setJustFinished(false)
-        await generateRoadmapStream({
-          branch,
-          domain,
-          signal: controller.signal,
-          onToken: (chunk) => setAiOutput((p) => p + chunk),
-        })
-        setJustFinished(true)
-        setTimeout(() => setJustFinished(false), 2200)
-      } catch (e) {
-        if (e.name !== 'AbortError') setAiError(e.message || 'Request failed')
-      } finally {
-        setAiLoading(false)
-      }
+    try {
+      setAiLoading(true)
+      setAiError('')
+      setAiOutput('')
+      setJustFinished(false)
+      await generateRoadmapStream({
+        branch,
+        domain,
+        signal: controller.signal,
+        onToken: (chunk) => setAiOutput((p) => p + chunk),
+      })
+      setJustFinished(true)
+      setTimeout(() => setJustFinished(false), 2200)
+    } catch (e) {
+      if (e.name !== 'AbortError') setAiError(e.message || 'Request failed')
+    } finally {
+      setAiLoading(false)
     }
-    run()
-    return () => controller.abort()
-  }, [branch, domain])
+  }
 
   async function handleCopy() {
     try {
@@ -194,7 +184,7 @@ export default function Report() {
           <select
             id="branch-select"
             value={branch}
-            onChange={(e) => { setBranch(e.target.value); setDomain('') }}
+            onChange={(e) => { setBranch(e.target.value); setDomain(''); setAiOutput(''); setAiError(''); setJustFinished(false) }}
           >
             <option value="">Select a branch...</option>
             {branches.map((b) => (
@@ -207,7 +197,7 @@ export default function Report() {
           <select
             id="domain-select"
             value={domain}
-            onChange={(e) => setDomain(e.target.value)}
+            onChange={(e) => { setDomain(e.target.value); setAiOutput(''); setAiError(''); setJustFinished(false) }}
             disabled={!branch}
           >
             <option value="">{!branch ? 'Select a branch first...' : 'Select a domain...'}</option>
@@ -217,6 +207,12 @@ export default function Report() {
           </select>
         </div>
       </section>
+
+      <div style={{ display: 'grid', placeItems: 'center', marginTop: 16 }}>
+        <button className="btn" onClick={handleGenerate} disabled={!branch || !domain || aiLoading}>
+          {aiLoading ? 'Generating…' : 'Generate Report'}
+        </button>
+      </div>
 
       <div style={{ display: 'grid', gap: 12, placeItems: 'center', marginTop: 24 }}>
         <button className="btn" onClick={handleCopy} disabled={!aiOutput}>Copy to clipboard</button>
