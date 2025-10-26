@@ -17,7 +17,7 @@ const bodySchema = z.object({
       }),
     )
     .min(1),
-  max_tokens: z.number().int().positive().max(4096).optional().default(1024),
+  max_tokens: z.number().int().positive().max(25000).optional().default(1024),
   system: z.string().optional(),
 })
 
@@ -65,6 +65,58 @@ router.post('/chat', async (req, res, next) => {
     const details = err?.error?.message || err?.response?.data || undefined
     console.error('[claude/chat] error:', msg, details || '')
     res.status(status).json({ error: msg, details })
+  }
+})
+
+router.post('/chat-stream', async (req, res) => {
+  try {
+    const parsed = bodySchema.parse(req.body)
+    const client = new Anthropic({ apiKey: ensureKey() })
+
+    res.setHeader('Content-Type', 'text/event-stream')
+    res.setHeader('Cache-Control', 'no-cache')
+    res.setHeader('Connection', 'keep-alive')
+    res.flushHeaders?.()
+
+    const messages = parsed.messages
+      .filter((m) => m.role !== 'system')
+      .map((m) => ({ role: m.role, content: m.content }))
+
+    const stream = await client.messages.create({
+      model: parsed.model,
+      max_tokens: parsed.max_tokens,
+      system: parsed.system,
+      messages,
+      stream: true,
+    })
+
+    let aborted = false
+    req.on('close', () => {
+      aborted = true
+      try { stream.controller?.abort?.() } catch {}
+    })
+
+    for await (const event of stream) {
+      if (aborted) break
+      if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+        const chunk = event.delta.text || ''
+        if (chunk) res.write(`data: ${JSON.stringify(chunk)}\n\n`)
+      }
+    }
+
+    if (!aborted) {
+      res.write('event: done\n')
+      res.write('data: "[DONE]"\n\n')
+      res.end()
+    }
+  } catch (err) {
+    const status = err.status || err.statusCode || 500
+    const msg = err?.message || 'Internal Server Error'
+    try {
+      res.write(`event: error\n`)
+      res.write(`data: ${JSON.stringify(msg)}\n\n`)
+    } catch {}
+    try { res.end() } catch {}
   }
 })
 

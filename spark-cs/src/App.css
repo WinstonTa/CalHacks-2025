@@ -1,1 +1,90 @@
 /* App-level tweaks can go here if needed */
+
+/* Markdown defaults */
+.markdown {
+  line-height: 1.6;
+}
+.markdown h1 { font-size: 1.875rem; margin: 1rem 0 .5rem; }
+.markdown h2 { font-size: 1.5rem; margin: 1rem 0 .5rem; }
+.markdown h3 { font-size: 1.25rem; margin: .75rem 0 .5rem; }
+.markdown p { margin: .5rem 0; }
+.markdown ul, .markdown ol { padding-left: 1.25rem; margin: .5rem 0; }
+.markdown hr { border: none; height: 1px; background: var(--border, #2a2a33); margin: 1rem 0; }
+.markdown code { background: rgba(127,127,127,0.12); padding: .1rem .35rem; border-radius: 4px; }
+.markdown pre { background: rgba(127,127,127,0.12); padding: .75rem; border-radius: 8px; overflow: auto; }
+
+/* Rainbow sweep border effect on completion */
+.response-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.response-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--border, #2a2a33);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* The animated sweep is a small arc that rotates around */
+.response-card.sweep::after {
+  content: '';
+  position: absolute;
+  inset: -2px; /* slightly outside to avoid clipping */
+  border-radius: inherit;
+  pointer-events: none;
+  /* Build a mostly transparent ring with a short rainbow arc */
+  background: conic-gradient(
+    from var(--sweep-angle, 0deg),
+    transparent 0turn 0.88turn,
+    red 0.88turn 0.89turn,
+    orange 0.89turn 0.90turn,
+    yellow 0.90turn 0.91turn,
+    lime 0.91turn 0.92turn,
+    cyan 0.92turn 0.93turn,
+    blue 0.93turn 0.94turn,
+    purple 0.94turn 0.95turn,
+    transparent 0.95turn 1turn
+  );
+  /* Mask to show only a thin border ring */
+  -webkit-mask: 
+    linear-gradient(#000 0 0) content-box, 
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 2px; /* thickness of the arc */
+  animation: sweep-rotate 2.1s linear 1;
+}
+
+@keyframes sweep-rotate {
+  from { --sweep-angle: 0deg; }
+  to { --sweep-angle: 360deg; }
+}
+
+/* Sparkle emoji transitions */
+.sparkle {
+  display: inline-block;
+  filter: none;
+  transition: color .4s ease;
+}
+.sparkle.rainbow {
+  background: linear-gradient(90deg, red, orange, yellow, green, cyan, blue, violet);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sparkle-rainbow 2s linear 1;
+}
+.sparkle.done {
+  color: #f5d90a; /* yellow */
+}
+
+@keyframes sparkle-rainbow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}

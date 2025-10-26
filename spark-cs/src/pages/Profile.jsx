@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
-import { generateRoadmap } from '../lib/claudeClient.js'
-
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { generateRoadmapStream } from '../lib/claudeClient.js'
 
 
 import { auth } from '../lib/firebase.js'
@@ -132,6 +133,7 @@ export default function Profile() {
   const [aiError, setAiError] = useState('')
   const [aiOutput, setAiOutput] = useState('')
   const [aiKey, setAiKey] = useState(0)
+  const [justFinished, setJustFinished] = useState(false)
 
   // Load saved profile (local demo-only)
   useEffect(() => {
@@ -168,15 +170,28 @@ export default function Profile() {
       setAiOutput('')
       setAiError('')
       setAiLoading(false)
+      setJustFinished(false)
       return
     }
     const controller = new AbortController()
+    let finished = false
     const run = async () => {
       try {
         setAiLoading(true)
         setAiError('')
-        const content = await generateRoadmap({ branch, domain, signal: controller.signal })
-        setAiOutput(content)
+        setAiOutput('')
+        setJustFinished(false)
+        await generateRoadmapStream({
+          branch,
+          domain,
+          signal: controller.signal,
+          onToken: (chunk) => {
+            setAiOutput((prev) => prev + chunk)
+          },
+        })
+        finished = true
+        setJustFinished(true)
+        setTimeout(() => setJustFinished(false), 2200)
       } catch (e) {
         if (e.name !== 'AbortError') setAiError(e.message || 'Request failed')
       } finally {
@@ -185,7 +200,9 @@ export default function Profile() {
     }
     setAiKey((k) => k + 1)
     run()
-    return () => controller.abort()
+    return () => {
+      controller.abort()
+    }
   }, [branch, domain])
 
 
@@ -314,54 +331,7 @@ export default function Profile() {
 
       )}
 
-      <section className="card stack-3" style={{ marginTop: 24, maxWidth: 640 }}>
-        <div>
-          <label htmlFor="branch-select">Branches of computer science you are interested in</label>
-          <select
-            id="branch-select"
-            value={branch}
-            onChange={(e) => {
-              setBranch(e.target.value)
-              setDomain('')
-            }}
-          >
-            <option value="">Select a branch...</option>
-            {branches.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="domain-select">Domains of computer science you are interested in</label>
-          <select
-            id="domain-select"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            disabled={!branch}
-          >
-            <option value="">{!branch ? 'Select a branch first...' : 'Select a domain...'}</option>
-            {(domainMap[norm(branch)] || []).map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </div>
-      </section>
-
-      {(branch && domain) && (
-        <section className="card" style={{ marginTop: 16, maxWidth: 860 }}>
-          <h2 style={{ marginTop: 0 }}>AI Roadmap for {domain}</h2>
-          {aiLoading && <div role="status">Generating roadmap…</div>}
-          {aiError && <div role="alert" style={{ color: 'crimson' }}>{aiError}</div>}
-          {!aiLoading && !aiError && aiOutput && (
-            <div style={{ whiteSpace: 'pre-wrap' }}>{aiOutput}</div>
-          )}
-        </section>
-      )}
+      
     </div>
   )
 }

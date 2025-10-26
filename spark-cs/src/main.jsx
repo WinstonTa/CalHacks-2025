@@ -8,6 +8,7 @@ import Profile from './pages/Profile.jsx'
 import Guidance from './pages/Guidance.jsx'
 import Roadmap from './pages/Roadmap.jsx'
 import Library from './pages/Library.jsx'
+import Report from './pages/Report.jsx'
 import { initTheme } from './theme.js'
 
 const router = createBrowserRouter([
@@ -20,6 +21,7 @@ const router = createBrowserRouter([
       { path: 'guidance', element: <Guidance /> },
       { path: 'roadmap', element: <Roadmap /> },
       { path: 'library', element: <Library /> },
+      { path: 'report', element: <Report /> },
     ],
   },
 ])

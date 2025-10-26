@@ -24,7 +24,8 @@ export default function NavBar() {
   return (
     <header className="nav">
       <div className="container nav-inner">
-        <Link to="/" className="brand nav-link" aria-label="Spark CS Home">
+        <Link to="/" className="brand nav-link" aria-label="Spark CS Home" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <img src="/logo.png" alt="SparkCS logo" width={24} height={24} style={{ borderRadius: 6 }} />
           SparkCS
         </Link>
         <nav className="nav-links" aria-label="Primary">
@@ -42,6 +43,9 @@ export default function NavBar() {
           </NavLink>
           <NavLink to="/library" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
             Library
+          </NavLink>
+          <NavLink to="/report" className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}>
+            Report
           </NavLink>
         </nav>
         <button className="btn theme-toggle" onClick={cycleTheme} aria-label={label} title={label}>

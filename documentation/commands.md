@@ -18,3 +18,13 @@ Localhost: http://localhost:5173/
 npm install
 
 npm run dev (again)
+
+# Deploy Entire Project
+## Back End
+cd spark-cs
+cd server
+node index.js
+
+## Front End
+cd spark-cs
+npm run dev
