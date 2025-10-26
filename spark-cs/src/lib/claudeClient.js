@@ -16,7 +16,62 @@ export async function generateRoadmap({ branch, domain, signal }) {
       max_tokens: 25000,
       messages: [
         { role: 'user', content: prompt }
-      ]
+      ],
+    }),
+    signal,
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text || 'Request failed')
+  }
+  const data = await res.json()
+  return data?.content || ''
+}
+
+export async function generateMindmapData({ branch, domains, signal, model = 'claude-sonnet-4-5-20250929' }) {
+  const system = 'You are Claude, a precise and practical technical mentor. Respond with strict JSON only.'
+  const prompt = `We are building a mindmap for the branch: ${branch}.
+Given these domains under that branch: ${domains.join(', ')}.
+For each domain, produce 3-6 concise subdomains or skills (1-3 words each). Do not include explanations.
+Return JSON of the form: { "items": [ { "domain": "...", "subdomains": ["...","..."] }, ... ] } with no extra text.`
+
+  const res = await fetch(`${API_BASE}/api/claude/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      system,
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+    signal,
+  })
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text || 'Request failed')
+  }
+  const data = await res.json()
+  const content = data?.content || '{}'
+  try {
+    const parsed = JSON.parse(content)
+    return parsed?.items || []
+  } catch {
+    return []
+  }
+}
+
+export async function summarizeTopic({ branch, domain, subdomain, signal, model = 'claude-sonnet-4-5-20250929' }) {
+  const system = 'You are Claude, a precise and practical technical mentor.'
+  const prompt = `Give a helpful 2-4 sentence summary of the skill "${subdomain}" within the domain "${domain}" under the branch "${branch}". Avoid lists; plain prose.`
+
+  const res = await fetch(`${API_BASE}/api/claude/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      system,
+      max_tokens: 400,
+      messages: [{ role: 'user', content: prompt }],
     }),
     signal,
   })
