@@ -2,6 +2,7 @@ import { buildRoadmapPrompt } from './roadmapPrompt.js'
 
 const API_BASE = import.meta.env?.VITE_API_BASE || ''
 
+
 export async function generateRoadmap({ branch, domain, signal }) {
   const system = 'You are Claude, a precise and practical technical mentor.'
   const prompt = buildRoadmapPrompt({ branch, domain })
